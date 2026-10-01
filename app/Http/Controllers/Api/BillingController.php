@@ -46,8 +46,8 @@ class BillingController extends Controller
                 'customer_email' => $request->user()->email,
                 'client_reference_id' => (string) $request->user()->id,
                 'metadata' => ['user_id' => (string) $request->user()->id],
-                'success_url' => rtrim(config('services.frontend_url'), '/') . '/?payment=success&session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => rtrim(config('services.frontend_url'), '/') . '/?payment=cancelled',
+                'success_url' => rtrim(config('services.frontend_url'), '/') . '/api/billing/return?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => rtrim(config('services.frontend_url'), '/') . '/api/billing/cancelled',
             ]);
         } catch (\Throwable $exception) {
             report($exception);
@@ -55,6 +55,41 @@ class BillingController extends Controller
         }
 
         return response()->json(['url' => $session->url]);
+    }
+
+    public function returnFromCheckout(Request $request)
+    {
+        $sessionId = $request->query('session_id');
+        if (! is_string($sessionId) || $sessionId === '' || blank(config('services.stripe.secret'))) {
+            return response('No se pudo verificar el pago.', 400);
+        }
+
+        if ($caBundlePath = config('services.stripe.ca_bundle_path')) {
+            \Stripe\Stripe::setCABundlePath($caBundlePath);
+        }
+
+        try {
+            $session = (new StripeClient(config('services.stripe.secret')))->checkout->sessions->retrieve($sessionId);
+        } catch (\Throwable $exception) {
+            report($exception);
+            return response('No se pudo verificar el pago. Contacta soporte antes de volver a pagar.', 503);
+        }
+
+        $userId = $session->metadata->user_id ?? $session->client_reference_id;
+        $user = $session->payment_status === 'paid' ? User::find($userId) : null;
+
+        if (! $user || $user->role === 'admin') {
+            return response('El pago todavía no aparece confirmado. Vuelve a abrir la app en un momento.', 202);
+        }
+
+        $this->grantBenefits($user, $session->id);
+
+        return redirect('aventumkids://stripe-return');
+    }
+
+    public function checkoutCancelled()
+    {
+        return redirect('aventumkids://stripe-return');
     }
 
     public function confirm(Request $request): JsonResponse
