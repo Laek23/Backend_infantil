@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ActivityController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BillingController;
 use App\Http\Controllers\Api\LivesController;
@@ -33,6 +34,13 @@ Route::middleware('auth:sanctum')->group(function () {
 	Route::put('/rewards/{reward}/equip', [RewardController::class, 'equip']);
 
 	Route::prefix('admin')->group(function () {
+		Route::get('/overview', [AdminController::class, 'overview']);
+		Route::get('/players', [AdminController::class, 'players']);
+		Route::patch('/players/{user}/subscription', [AdminController::class, 'updateSubscription']);
+		Route::get('/rewards', [AdminController::class, 'rewards']);
+		Route::post('/rewards', [AdminController::class, 'storeReward']);
+		Route::patch('/rewards/{reward}', [AdminController::class, 'updateReward']);
+		Route::delete('/rewards/{reward}', [AdminController::class, 'deleteReward']);
 		Route::get('/subjects', [SubjectController::class, 'adminIndex']);
 		Route::post('/subjects', [SubjectController::class, 'store']);
 		Route::patch('/subjects/{subject}', [SubjectController::class, 'update']);
