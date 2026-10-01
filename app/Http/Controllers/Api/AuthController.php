@@ -12,6 +12,7 @@ class AuthController extends Controller
 {
     public function register(Request $request): JsonResponse
     {
+        $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -26,6 +27,7 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
+        $request->merge(['email' => strtolower(trim((string) $request->input('email')))]);
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -42,7 +44,13 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json(['user' => $request->user()]);
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado.'], 401);
+        }
+
+        return response()->json(['user' => $user]);
     }
 
     public function logout(Request $request): JsonResponse

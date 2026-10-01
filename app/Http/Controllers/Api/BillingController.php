@@ -15,6 +15,10 @@ class BillingController extends Controller
     {
         abort_if($request->user()->role === 'admin', 403, 'Los administradores no necesitan vidas.');
 
+        if (blank(config('services.stripe.secret')) || blank(config('services.frontend_url'))) {
+            return response()->json(['message' => 'Falta configurar STRIPE_SECRET o FRONTEND_URL en Render.'], 503);
+        }
+
         if ($caBundlePath = config('services.stripe.ca_bundle_path')) {
             \Stripe\Stripe::setCABundlePath($caBundlePath);
         }
@@ -34,8 +38,8 @@ class BillingController extends Controller
                 'customer_email' => $request->user()->email,
                 'client_reference_id' => (string) $request->user()->id,
                 'metadata' => ['user_id' => (string) $request->user()->id],
-                'success_url' => env('FRONTEND_URL', 'http://127.0.0.1:5173') . '/?payment=success&session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => env('FRONTEND_URL', 'http://127.0.0.1:5173') . '/?payment=cancelled',
+                'success_url' => rtrim(config('services.frontend_url'), '/') . '/?payment=success&session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => rtrim(config('services.frontend_url'), '/') . '/?payment=cancelled',
             ]);
         } catch (\Throwable $exception) {
             report($exception);

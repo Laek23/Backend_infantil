@@ -111,5 +111,5 @@ EOF
 # Exponer el puerto que Render asignará dinámicamente
 EXPOSE 80
 
-# Aplicar migraciones antes de iniciar Nginx y PHP-FPM
-CMD ["sh", "-c", "php artisan migrate --force && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+# Preparar la base de datos antes de iniciar Nginx y PHP-FPM
+CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --force && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]

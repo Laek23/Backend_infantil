@@ -8,6 +8,7 @@ return [
         'currency' => env('STRIPE_CURRENCY', 'mxn'),
         'ca_bundle_path' => env('STRIPE_CA_BUNDLE_PATH'),
     ],
+    'frontend_url' => env('FRONTEND_URL'),
 
     /*
     |--------------------------------------------------------------------------
