@@ -9,6 +9,11 @@ return [
         'ca_bundle_path' => env('STRIPE_CA_BUNDLE_PATH'),
     ],
     'frontend_url' => env('FRONTEND_URL'),
+    'admin_bootstrap' => [
+        'name' => env('ADMIN_NAME'),
+        'email' => env('ADMIN_EMAIL'),
+        'password' => env('ADMIN_PASSWORD'),
+    ],
 
     /*
     |--------------------------------------------------------------------------

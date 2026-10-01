@@ -10,9 +10,9 @@ class AdminAccountSeeder extends Seeder
 {
     public function run(): void
     {
-        $name = env('ADMIN_NAME');
-        $email = strtolower(trim((string) env('ADMIN_EMAIL')));
-        $password = env('ADMIN_PASSWORD');
+        $name = config('services.admin_bootstrap.name');
+        $email = strtolower(trim((string) config('services.admin_bootstrap.email')));
+        $password = config('services.admin_bootstrap.password');
 
         if (blank($name) || blank($email) || blank($password)) {
             return;
@@ -22,13 +22,11 @@ class AdminAccountSeeder extends Seeder
             throw new RuntimeException('ADMIN_PASSWORD debe tener al menos 12 caracteres.');
         }
 
-        $user = User::firstOrCreate(
-            ['email' => $email],
-            ['name' => $name, 'password' => $password, 'role' => 'admin'],
-        );
-
-        if ($user->role !== 'admin') {
-            throw new RuntimeException('ADMIN_EMAIL ya pertenece a una cuenta de jugador. Usa otro correo para el administrador.');
-        }
+        $user = User::firstOrNew(['email' => $email]);
+        $user->forceFill([
+            'name' => $name,
+            'password' => $password,
+            'role' => 'admin',
+        ])->save();
     }
 }

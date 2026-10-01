@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Reward;
 use App\Models\Subject;
 use App\Models\User;
+use Database\Seeders\AdminAccountSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -91,5 +92,28 @@ class ProductionSetupTest extends TestCase
             ])->assertCreated();
 
         $this->assertSame(1, Reward::count());
+    }
+
+    public function test_admin_bootstrap_promotes_an_existing_player_account(): void
+    {
+        User::create([
+            'name' => 'Old Player Name',
+            'email' => 'admin@example.com',
+            'password' => 'old-player-password',
+            'role' => 'child',
+        ]);
+
+        config()->set('services.admin_bootstrap', [
+            'name' => 'Platform Admin',
+            'email' => 'admin@example.com',
+            'password' => 'A-new-strong-password-2026',
+        ]);
+
+        $this->seed(AdminAccountSeeder::class);
+
+        $admin = User::where('email', 'admin@example.com')->firstOrFail();
+        $this->assertSame('admin', $admin->role);
+        $this->assertSame('Platform Admin', $admin->name);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('A-new-strong-password-2026', $admin->password));
     }
 }
