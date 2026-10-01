@@ -15,8 +15,16 @@ class BillingController extends Controller
     {
         abort_if($request->user()->role === 'admin', 403, 'Los administradores no necesitan vidas.');
 
-        if (blank(config('services.stripe.secret')) || blank(config('services.frontend_url'))) {
-            return response()->json(['message' => 'Falta configurar STRIPE_SECRET o FRONTEND_URL en Render.'], 503);
+        $missingConfig = collect([
+            'STRIPE_SECRET' => config('services.stripe.secret'),
+            'FRONTEND_URL' => config('services.frontend_url'),
+        ])->filter(fn ($value) => blank($value))->keys()->all();
+
+        if ($missingConfig) {
+            return response()->json([
+                'message' => 'Falta configurar en Render: '.implode(', ', $missingConfig).'.',
+                'missing' => $missingConfig,
+            ], 503);
         }
 
         if ($caBundlePath = config('services.stripe.ca_bundle_path')) {

@@ -112,4 +112,4 @@ EOF
 EXPOSE 80
 
 # Preparar la base de datos antes de iniciar Nginx y PHP-FPM
-CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --force && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]
+CMD ["sh", "-c", "php artisan config:clear && php artisan migrate --force && php artisan db:seed --force && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf"]

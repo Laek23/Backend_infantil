@@ -51,6 +51,7 @@ class ProductionSetupTest extends TestCase
         $this->actingAs($user, 'sanctum')
             ->postJson('/api/billing/checkout')
             ->assertStatus(503)
-            ->assertJsonPath('message', 'Falta configurar STRIPE_SECRET o FRONTEND_URL en Render.');
+            ->assertJsonPath('message', 'Falta configurar en Render: STRIPE_SECRET, FRONTEND_URL.')
+            ->assertJsonPath('missing', ['STRIPE_SECRET', 'FRONTEND_URL']);
     }
 }
